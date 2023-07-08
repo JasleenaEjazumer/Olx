@@ -1,14 +1,47 @@
-import React from 'react';
-
+import React, { useContext } from 'react';
+import { useForm } from "./useForm";
 import Logo from '../../olx-logo.png';
 import './Signup.css';
+import { FirebaseContext } from '../../store/Context';
+import { Link, useHistory } from 'react-router-dom';
 
 export default function Signup() {
+  const history = useHistory();
+  const [value, handleChange] = useForm({
+    name: "",
+    email: "",
+    phone: "",
+    password: ""
+  });
+
+  const { firebase } = useContext(FirebaseContext);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const { email, password, name, phone } = value;
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then((result) => {
+        result.user.updateProfile({ displayName: name })
+          .then(() => {
+            firebase.firestore().collection('users').add({
+              id: result.user.uid,
+              name: name,
+              phone: phone
+            }).then(() => {
+              history.push("/login");
+            });
+          });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
   return (
     <div>
       <div className="signupParentDiv">
-        <img width="200px" height="200px" src={Logo}></img>
-        <form>
+        <img width="200px" height="200px" src={Logo} alt="Logo" />
+        <form onSubmit={handleSubmit}>
           <label htmlFor="fname">Username</label>
           <br />
           <input
@@ -16,17 +49,19 @@ export default function Signup() {
             type="text"
             id="fname"
             name="name"
-            defaultValue="John"
+            value={value.name}
+            onChange={handleChange}
           />
           <br />
-          <label htmlFor="fname">Email</label>
+          <label htmlFor="mname">Email</label>
           <br />
           <input
             className="input"
             type="email"
-            id="fname"
+            id="mname"
             name="email"
-            defaultValue="John"
+            value={value.email}
+            onChange={handleChange}
           />
           <br />
           <label htmlFor="lname">Phone</label>
@@ -36,23 +71,25 @@ export default function Signup() {
             type="number"
             id="lname"
             name="phone"
-            defaultValue="Doe"
+            value={value.phone}
+            onChange={handleChange}
           />
           <br />
-          <label htmlFor="lname">Password</label>
+          <label htmlFor="passwrd">Password</label>
           <br />
           <input
             className="input"
             type="password"
-            id="lname"
+            id="passwrd"
             name="password"
-            defaultValue="Doe"
+            value={value.password}
+            onChange={handleChange}
           />
           <br />
           <br />
           <button>Signup</button>
         </form>
-        <a>Login</a>
+        <Link to="/login">Login</Link>
       </div>
     </div>
   );
