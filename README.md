@@ -1,2 +1,2 @@
 # Olx
-An E-COMMERCE simple react  project
+OLX Clone , Developed Using React integrated with firebase
